@@ -3,4 +3,5 @@
 IMG
 .ipynb_checkpoints/
 driving_log.csv
+model.h5
 
