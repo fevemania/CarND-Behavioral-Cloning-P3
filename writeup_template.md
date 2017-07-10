@@ -1,4 +1,4 @@
-#**Behavioral Cloning** 
+# **Behavioral Cloning** 
 
 ---
 
@@ -28,12 +28,12 @@ The goals / steps of this project are the following:
 [image12]: ./examples/memory_error.png "memory error"
 
 ## Rubric Points
-###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
+### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
 
 ---
-###Files Submitted & Code Quality
+### Files Submitted & Code Quality
 
-####1. Submission includes all required files and can be used to run the simulator in autonomous mode
+#### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
 * model.py containing the script to create and train the model
@@ -41,19 +41,19 @@ My project includes the following files:
 * model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
 
-####2. Submission includes functional code
+#### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
 python drive.py model.h5
 ```
 
-####3. Submission code is usable and readable
+#### 3. Submission code is usable and readable
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. An appropriate model architecture has been employed
+#### 1. An appropriate model architecture has been employed
 
 My model is built according to [end to end self-driving paper wrote by Nvidia](https://arxiv.org/pdf/1604.07316.pdf).
 
@@ -61,17 +61,17 @@ which consists of a convolution neural network with 3x3 filter sizes and depths 
 
 The data is normalized in the model using a Keras lambda layer (code line 79) and trim range between row 55 to 135 each image to get rid of noisy information such as beautiful scenery and the car hood. 
 
-####2. Attempts to reduce overfitting in the model
+#### 2. Attempts to reduce overfitting in the model
 
 The model contains dropout layers with rate = 0.5 in order to reduce overfitting (model.py line 95). 
 
 The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 22). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
-####3. Model parameter tuning
+#### 3. Model parameter tuning
 
 The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 102).
 
-####4. Appropriate training data
+#### 4. Appropriate training data
 
 Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road.
 
@@ -85,9 +85,9 @@ Data distribution as follow:
 
 For details about how I created the training data, see the next section. 
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. Solution Design Approach
+#### 1. Solution Design Approach
 
 My first step was to use a convolution neural network model similar to My architecture used in traffic sign classification.
 
@@ -107,15 +107,45 @@ The final step was to run the simulator to see how well the car was driving arou
 
 At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
-####2. Final Model Architecture
+#### 2. Final Model Architecture
 
 The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes.
 
 Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
 
+|      Layer       |               Description                |
+| :--------------: | :--------------------------------------: |
+|      Input       |            32x32x3 RGB image             |
+|   Lambda Layer   | data normalize with (pixel / 255.) - 0.5 |
+| Cropping2D Layer | trim image to get rid of the information we don't need. |
+| Convolution 5x5  | 1x1 stride, same padding, outputs 76x316x24 |
+|       ELU        |                                          |
+|   Max pooling    |      2x2 stride,  outputs 38x158x24      |
+|                  |                                          |
+| Convolution 5x5  | 1x1 stride, valid padding, outputs 34x154x36 |
+|       ELU        |                                          |
+|   Max pooling    |      2x2 stride,  outputs 17x77x36       |
+|                  |                                          |
+| Convolution 5x5  | 1x1 stride, valid padding, outputs 13x73x48 |
+|       ELU        |                                          |
+|   Max pooling    |       2x2 stride,  outputs 6x36x48       |
+|                  |                                          |
+| Convolution 3x3  | 1x1 stride, valid padding, outputs 4x34x64 |
+|       ELU        |                                          |
+| Convolution 3x3  | 1x1 stride, valid padding, outputs 2x32x64 |
+|       ELU        |                                          |
+|                  |                                          |
+| Fully connected  |        inputs 4096, outputs 1164         |
+|     Dropout      |                rate = 0.5                |
+| Fully connected  |               outputs 100                |
+| Fully connected  |                outputs 50                |
+| Fully connected  |                outputs 10                |
+| Fully connected  | outputs 1 (Regression Model no need softmax) |
+
+
 ![alt text][image9]
 
-####3. Creation of the Training Set & Training Process
+#### 3. Creation of the Training Set & Training Process
 
 To capture good driving behavior, I first recorded four laps on track one with counter clock-clockwise using center lane driving. Here is an example image of center lane driving:
 
