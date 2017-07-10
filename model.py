@@ -7,9 +7,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
 # read data
-
 filename = './record/driving_log.csv'
-df = pd.read_csv(filenamexx, float_precision='high')
+df = pd.read_csv(filename, float_precision='high')
 data = df.values
 del df
 
@@ -23,6 +22,7 @@ train_samples, validation_samples = train_test_split(data[:9294], test_size=0.2)
 del data
 
 # X_train.dtype = np.uint8; y_train.dtype = np.float64
+# Here I use generator to dynamic load necessary data into memory to avoid memory error (cause load 36000 images in dtype np.float32 will more than 32GB ram!)
 def generator(samples, batch_size=32):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
@@ -47,7 +47,8 @@ def generator(samples, batch_size=32):
                 images.extend([center_img, left_img, right_img, center_img_flipped])
                 
                 steering_center = float(batch_sample[3])
-                correction = 0.2 # this is a parameter to tune
+                 # this is a parameter to tune the steering angle of left camera and right camera according to center camera 
+                correction = 0.2                
                 steering_left = steering_center + correction
                 steering_right = steering_center - correction
                 steering_center_flipped = -steering_center
@@ -67,17 +68,17 @@ from keras.layers import Flatten, Dense, Lambda, Cropping2D
 from keras.layers import Conv2D, MaxPooling2D, Dropout
 from keras.models import load_model
 
-# This is a regression network
+# This is a regression neural network introduced by Nvidia
 
-# here we do two preprocessing
+# here I do two dynamic data preprocessing with Keras Lambda layer and Cropping2D layer
 # (1) normalize the data
-# (2) mean centering the data
+# (2) crop the vision without car hood and noisy scenery
 def dave_2():
     input_shape = (160, 320, 3)
 
     model = Sequential()
     model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=input_shape))
-    model.add(Cropping2D(cropping=((55, 25), (0, 0))))  # , input_shape=input_shape
+    model.add(Cropping2D(cropping=((55, 25), (0, 0))))
     model.add(Conv2D(24, kernel_size=(5, 5),
                     activation='elu'))
     model.add(MaxPooling2D(pool_size=(2,2)))
@@ -97,13 +98,13 @@ def dave_2():
     model.add(Dense(50, activation='elu'))
     model.add(Dense(10, activation='elu'))
     model.add(Dense(1))
-
+    
+    # print the model architecture
     print(model.summary())
     model.compile(loss='mse', optimizer='adam')
 
     steps_per_epoch = int(len(train_samples)/32)
     validation_steps =  int(len(validation_samples)/32)
-    history_object = 0
     history_object = model.fit_generator(train_generator, steps_per_epoch=steps_per_epoch, epochs=5, verbose=1, validation_data=validation_generator, validation_steps=validation_steps)
     model.save('model.h5')
     return history_object
